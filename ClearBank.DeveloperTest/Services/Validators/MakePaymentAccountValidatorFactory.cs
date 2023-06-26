@@ -14,7 +14,7 @@ namespace ClearBank.DeveloperTest.Services.Validators;
 ///     makes the validation extensible so we can add additional validators without 
 ///     changing the calling code.
 /// </remarks>
-internal class MakePaymentAccountValidatorFactory : IMakePaymentAccountValidatorFactory
+public class MakePaymentAccountValidatorFactory : IMakePaymentAccountValidatorFactory
 {
     public IValidator<Account> GetValidator(MakePaymentRequest request)
     {

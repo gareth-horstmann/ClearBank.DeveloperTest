@@ -4,11 +4,11 @@ using ClearBank.DeveloperTest.Types;
 
 namespace ClearBank.DeveloperTest.Services;
 
-// The accessibility has been changed to internal. This means that the payment service is only accessible
+// The accessibility could be hanged internal. This means that the payment service is only accessible
 // externally through the IPaymentService contract.  If an IoC container is introduced, the services can
 // be registered and accessed through the IoC container, which will completely hide the implementation
 // details from the consumer.
-internal class PaymentService : IPaymentService
+public class PaymentService : IPaymentService
 {
     private readonly IAccountDataStore _accountDataStore;
     private readonly IMakePaymentAccountValidatorFactory _makePaymentAccountValidatorFactory;

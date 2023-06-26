@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Data;
 
-internal interface IAccountDataStore
+public interface IAccountDataStore
 {
     Account GetAccount(string accountNumber);
     void UpdateAccount(Account account);

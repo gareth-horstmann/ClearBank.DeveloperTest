@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace ClearBank.DeveloperTest.Services.Validators;
 
-internal interface IMakePaymentAccountValidatorFactory
+public interface IMakePaymentAccountValidatorFactory
 {
     IValidator<Account> GetValidator(MakePaymentRequest request);
 }

@@ -17,7 +17,7 @@ namespace ClearBank.DeveloperTest.Data;
 ///     As this project does not have an IoC container, this class is constructing the correct IAccountDataStore
 ///     based on the configuration setting, and storing the instance for reuse later.
 /// </remarks>
-internal class AccountDataStoreFactory : IAccountDataStoreFactory
+public class AccountDataStoreFactory : IAccountDataStoreFactory
 {
     private readonly DatabaseConfiguration _databaseConfiguration;
     private readonly IMemoryCache _cache;

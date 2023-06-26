@@ -1,6 +1,6 @@
 ﻿namespace ClearBank.DeveloperTest.Data;
 
-internal interface IAccountDataStoreFactory
+public interface IAccountDataStoreFactory
 {
     IAccountDataStore Build();
 }

@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Data
 {
-    internal class BackupAccountDataStore : IAccountDataStore
+    public class BackupAccountDataStore : IAccountDataStore
     {
         public Account GetAccount(string accountNumber)
         {
