@@ -1,91 +1,46 @@
 ﻿using ClearBank.DeveloperTest.Data;
+using ClearBank.DeveloperTest.Services.Validators;
 using ClearBank.DeveloperTest.Types;
-using System.Configuration;
 
-namespace ClearBank.DeveloperTest.Services
+namespace ClearBank.DeveloperTest.Services;
+
+// The accessibility has been changed to internal. This means that the payment service is only accessible
+// externally through the IPaymentService contract.  If an IoC container is introduced, the services can
+// be registered and accessed through the IoC container, which will completely hide the implementation
+// details from the consumer.
+internal class PaymentService : IPaymentService
 {
-    public class PaymentService : IPaymentService
+    private readonly IAccountDataStore _accountDataStore;
+    private readonly IMakePaymentAccountValidatorFactory _makePaymentAccountValidatorFactory;
+
+    public PaymentService(IAccountDataStoreFactory dataStoreFactory, IMakePaymentAccountValidatorFactory makePaymentAccountValidatorFactory)
     {
-        public MakePaymentResult MakePayment(MakePaymentRequest request)
+        // A factory is used to construct the data store here, but the data store should be injected
+        // from an IoC container (please see remarks in the AccountDataStoreFactory class)
+        _accountDataStore = dataStoreFactory.Build();
+        _makePaymentAccountValidatorFactory = makePaymentAccountValidatorFactory;
+    }
+
+    public MakePaymentResult MakePayment(MakePaymentRequest request)
+    {
+        // There are no formal requirements for this method, and the task was to refactor
+        // the existing implementation, so the creditor account is not considered in the
+        // refactor.  The assumption is that the creditor could be a local account, or it
+        // could be an account on a different system, which is out of scope.
+        var account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
+
+        var validator = _makePaymentAccountValidatorFactory.GetValidator(request);
+        var validationResult = validator.Validate(account);
+
+        if (validationResult.IsValid)
         {
-            var dataStoreType = ConfigurationManager.AppSettings["DataStoreType"];
-
-            Account account = null;
-
-            if (dataStoreType == "Backup")
-            {
-                var accountDataStore = new BackupAccountDataStore();
-                account = accountDataStore.GetAccount(request.DebtorAccountNumber);
-            }
-            else
-            {
-                var accountDataStore = new AccountDataStore();
-                account = accountDataStore.GetAccount(request.DebtorAccountNumber);
-            }
-
-            var result = new MakePaymentResult();
-
-            switch (request.PaymentScheme)
-            {
-                case PaymentScheme.Bacs:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
-                    {
-                        result.Success = false;
-                    }
-                    break;
-
-                case PaymentScheme.FasterPayments:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
-                    {
-                        result.Success = false;
-                    }
-                    else if (account.Balance < request.Amount)
-                    {
-                        result.Success = false;
-                    }
-                    break;
-
-                case PaymentScheme.Chaps:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
-                    {
-                        result.Success = false;
-                    }
-                    else if (account.Status != AccountStatus.Live)
-                    {
-                        result.Success = false;
-                    }
-                    break;
-            }
-
-            if (result.Success)
-            {
-                account.Balance -= request.Amount;
-
-                if (dataStoreType == "Backup")
-                {
-                    var accountDataStore = new BackupAccountDataStore();
-                    accountDataStore.UpdateAccount(account);
-                }
-                else
-                {
-                    var accountDataStore = new AccountDataStore();
-                    accountDataStore.UpdateAccount(account);
-                }
-            }
-
-            return result;
+            account.Debit(request.Amount);
+            _accountDataStore.UpdateAccount(account);
         }
+
+        return new MakePaymentResult
+        {
+            Success = validationResult.IsValid
+        };
     }
 }
